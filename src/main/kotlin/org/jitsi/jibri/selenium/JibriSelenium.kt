@@ -53,7 +53,7 @@ data class JibriSeleniumOptions(
     /**
      * Which display selenium should be started on
      */
-    val display: String = ":0",
+    val display: String = ":4",
     /**
      * The display name that should be used for jibri.  Note that this
      * is currently only used in the sipgateway gateway scenario; when doing
@@ -119,6 +119,8 @@ class JibriSelenium(
         val chromeOptions = ChromeOptions()
         chromeOptions.addArguments(
                 "--use-fake-ui-for-media-stream",
+                "--disable-dev-shm-usage",
+                "--no-sandbox",
                 "--start-maximized",
                 "--kiosk",
                 "--enabled",
