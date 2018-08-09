@@ -55,4 +55,8 @@ data class CallUrlInfo(
         // Purposefully ignore urlParams here
         return Objects.hash(baseUrl.toLowerCase(), callName.toLowerCase())
     }
+
+    fun isDumb(): Boolean {
+        return callName.equals("dumb")
+    }
 }

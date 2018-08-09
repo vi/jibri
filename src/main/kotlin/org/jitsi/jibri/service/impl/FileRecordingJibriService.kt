@@ -26,6 +26,7 @@ import org.jitsi.jibri.capture.ffmpeg.executor.FFMPEG_RESTART_ATTEMPTS
 import org.jitsi.jibri.config.XmppCredentials
 import org.jitsi.jibri.selenium.CallParams
 import org.jitsi.jibri.selenium.JibriSelenium
+import org.jitsi.jibri.selenium.JibriSeleniumOptions
 import org.jitsi.jibri.selenium.RECORDING_URL_OPTIONS
 import org.jitsi.jibri.service.JibriService
 import org.jitsi.jibri.service.JibriServiceStatus
@@ -89,7 +90,8 @@ data class RecordingMetadata(
 class FileRecordingJibriService(
     private val fileRecordingParams: FileRecordingParams,
     private val executor: ScheduledExecutorService,
-    private val jibriSelenium: JibriSelenium = JibriSelenium(executor = executor),
+    private val jsOptions: JibriSeleniumOptions = fileRecordingParams.callParams.getProperJSOptions(),
+    private val jibriSelenium: JibriSelenium = JibriSelenium(jibriSeleniumOptions = jsOptions, executor = executor),
     private val capturer: Capturer = FfmpegCapturer(),
     private val processFactory: ProcessFactory = ProcessFactory()
 ) : JibriService() {

@@ -87,7 +87,8 @@ class StreamingJibriService(private val streamingParams: StreamingParams) : Jibr
      * cancel the task
      */
     private var processMonitorTask: ScheduledFuture<*>? = null
-    private val jibriSelenium = JibriSelenium(executor = executor)
+    private val jsOptions = streamingParams.callParams.getProperJSOptions()
+    private val jibriSelenium = JibriSelenium(jibriSeleniumOptions = jsOptions, executor = executor)
 
     init {
         sink = StreamSink(

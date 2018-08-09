@@ -20,6 +20,7 @@ package org.jitsi.jibri.selenium
 import org.jitsi.jibri.CallUrlInfo
 import org.jitsi.jibri.config.XmppCredentials
 import org.jitsi.jibri.selenium.pageobjects.CallPage
+import org.jitsi.jibri.selenium.pageobjects.CallPageDumb
 import org.jitsi.jibri.selenium.pageobjects.ICallPage
 import org.jitsi.jibri.selenium.pageobjects.HomePage
 import org.jitsi.jibri.selenium.util.BrowserFileHandler
@@ -45,7 +46,14 @@ import java.util.logging.Logger
  */
 data class CallParams(
     val callUrlInfo: CallUrlInfo
-)
+) {
+    fun getProperJSOptions(): JibriSeleniumOptions {
+        val jso = JibriSeleniumOptions(
+            useDummyCallPage = callUrlInfo.isDumb()
+        )
+        return jso
+    }
+}
 
 /**
  * Options that can be passed to [JibriSelenium]
@@ -71,7 +79,11 @@ data class JibriSeleniumOptions(
      * Chrome command line flags to add (in addition to the common
      * ones)
      */
-    val extraChromeCommandLineFlags: List<String> = listOf()
+    val extraChromeCommandLineFlags: List<String> = listOf(),
+    /**
+     * Just stream some specified non-jitsimeet HTML page without injecting any scripts
+     */
+    val useDummyCallPage: Boolean = false
 )
 
 val SIP_GW_URL_OPTIONS = listOf(
@@ -139,7 +151,13 @@ class JibriSelenium(
         logPrefs.enable(LogType.DRIVER, Level.ALL)
         chromeOptions.setCapability(CapabilityType.LOGGING_PREFS, logPrefs)
         chromeDriver = ChromeDriver(chromeDriverService, chromeOptions)
-        callPage = CallPage(chromeDriver)
+        if (!jibriSeleniumOptions.useDummyCallPage) {
+            logger.info("Using fully-fledged Jitsi Meet-interacting call page")
+            callPage = CallPage(chromeDriver)
+        } else {
+            logger.info("Using dumb call page")
+            callPage = CallPageDumb(chromeDriver)
+        }
     }
 
     /**
