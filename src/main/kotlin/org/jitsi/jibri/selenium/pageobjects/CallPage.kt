@@ -28,7 +28,7 @@ import java.util.logging.Logger
 /**
  * Page object representing the in-call page on a jitsi-meet server
  */
-class CallPage(driver: RemoteWebDriver) : AbstractPageObject(driver) {
+class CallPage(driver: RemoteWebDriver) : AbstractPageObject(driver), ICallPage {
     private val logger = Logger.getLogger(this::class.qualifiedName)
 
     init {
@@ -65,7 +65,7 @@ class CallPage(driver: RemoteWebDriver) : AbstractPageObject(driver) {
         }
     }
 
-    fun getNumParticipants(): Long {
+    override fun getNumParticipants(): Long {
         val result = driver.executeScript("""
             try {
                 return APP.conference.membersCount;
@@ -79,7 +79,7 @@ class CallPage(driver: RemoteWebDriver) : AbstractPageObject(driver) {
         }
     }
 
-    fun injectParticipantTrackerScript(): Boolean {
+    override fun injectParticipantTrackerScript(): Boolean {
         val result = driver.executeScript("""
             try {
                 window._jibriParticipants = [];
@@ -115,7 +115,7 @@ class CallPage(driver: RemoteWebDriver) : AbstractPageObject(driver) {
         }
     }
 
-    fun getParticipants(): List<Map<String, Any>> {
+    override fun getParticipants(): List<Map<String, Any>> {
         val result = driver.executeScript("""
             try {
                 return window._jibriParticipants;
@@ -135,7 +135,7 @@ class CallPage(driver: RemoteWebDriver) : AbstractPageObject(driver) {
      * Add the given key, value pair to the presence map and send a new presence
      * message
      */
-    fun addToPresence(key: String, value: String): Boolean {
+    override fun addToPresence(key: String, value: String): Boolean {
         val result = driver.executeScript("""
             try {
                 APP.conference._room.room.addToPresence(
@@ -154,7 +154,7 @@ class CallPage(driver: RemoteWebDriver) : AbstractPageObject(driver) {
         }
     }
 
-    fun sendPresence(): Boolean {
+    override fun sendPresence(): Boolean {
         val result = driver.executeScript("""
             try {
                 APP.conference._room.room.sendPresence();
@@ -168,7 +168,7 @@ class CallPage(driver: RemoteWebDriver) : AbstractPageObject(driver) {
         }
     }
 
-    fun leave(): Boolean {
+    override fun leave(): Boolean {
         val result = driver.executeScript("""
             try {
                 return APP.conference._room.leave();

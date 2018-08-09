@@ -20,6 +20,7 @@ package org.jitsi.jibri.selenium
 import org.jitsi.jibri.CallUrlInfo
 import org.jitsi.jibri.config.XmppCredentials
 import org.jitsi.jibri.selenium.pageobjects.CallPage
+import org.jitsi.jibri.selenium.pageobjects.ICallPage
 import org.jitsi.jibri.selenium.pageobjects.HomePage
 import org.jitsi.jibri.selenium.util.BrowserFileHandler
 import org.jitsi.jibri.service.JibriServiceStatus
@@ -103,6 +104,7 @@ class JibriSelenium(
     private val browserOutputLogger = Logger.getLogger("browser")
     private var chromeDriver: ChromeDriver
     private var currCallUrl: String? = null
+    private var callPage: ICallPage
 
     /**
      * A task which checks if Jibri is alone in the call
@@ -137,6 +139,7 @@ class JibriSelenium(
         logPrefs.enable(LogType.DRIVER, Level.ALL)
         chromeOptions.setCapability(CapabilityType.LOGGING_PREFS, logPrefs)
         chromeDriver = ChromeDriver(chromeDriverService, chromeOptions)
+        callPage = CallPage(chromeDriver)
     }
 
     /**
@@ -158,7 +161,7 @@ class JibriSelenium(
         emptyCallTask = executor.scheduleAtFixedRate(15, TimeUnit.SECONDS, 15) {
             try {
                 // >1 since the count will include jibri itself
-                if (CallPage(chromeDriver).getNumParticipants() > 1) {
+                if (callPage.getNumParticipants() > 1) {
                     numTimesEmpty = 0
                 } else {
                     numTimesEmpty++
@@ -179,13 +182,13 @@ class JibriSelenium(
      * Jibri is active
      */
     private fun addParticipantTracker() {
-        CallPage(chromeDriver).injectParticipantTrackerScript()
+        callPage.injectParticipantTrackerScript()
     }
 
     fun addToPresence(key: String, value: String): Boolean =
-        CallPage(chromeDriver).addToPresence(key, value)
+        callPage.addToPresence(key, value)
 
-    fun sendPresence(): Boolean = CallPage(chromeDriver).sendPresence()
+    fun sendPresence(): Boolean = callPage.sendPresence()
 
     /**
      * Join a a web call with Selenium
@@ -203,7 +206,7 @@ class JibriSelenium(
             localStorageValues["xmpp_password_override"] = xmppCredentials.password
         }
         setLocalStorageValues(localStorageValues)
-        if (!CallPage(chromeDriver).visit(callUrlInfo.callUrl)) {
+        if (!callPage.visit(callUrlInfo.callUrl)) {
             return false
         }
         addEmptyCallDetector()
@@ -213,7 +216,7 @@ class JibriSelenium(
     }
 
     fun getParticipants(): List<Map<String, Any>> {
-        return CallPage(chromeDriver).getParticipants()
+        return callPage.getParticipants()
     }
 
     fun leaveCallAndQuitBrowser() {
@@ -229,7 +232,7 @@ class JibriSelenium(
             }
         }
         logger.info("Leaving web call")
-        CallPage(chromeDriver).leave()
+        callPage.leave()
         currCallUrl = null
         logger.info("Quitting chrome driver")
         chromeDriver.quit()
