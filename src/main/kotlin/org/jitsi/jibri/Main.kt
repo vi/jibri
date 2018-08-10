@@ -26,6 +26,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import net.sourceforge.argparse4j.ArgumentParsers
+import net.sourceforge.argparse4j.impl.Arguments
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
@@ -72,10 +73,17 @@ fun main(args: Array<String>) {
         .required(true)
         .type(String::class.java)
         .help("Path to the jibri config file")
+    argParser.addArgument("-X", "--no-xmpp")
+        .required(false)
+        .type(Boolean::class.java)
+        .action(Arguments.storeTrue())
+        .help("Don't connect to XMPP server")
 
     val ns = argParser.parseArgs(args)
+    logger.info("args=$ns")
     val configFilePath = ns.getString("config")
-    logger.info("Using config file $configFilePath")
+    val noXmpp = ns.getBoolean("no_xmpp")
+    logger.info("Using config file $configFilePath. noXmpp=$noXmpp")
 
     val jibriConfigFile = File(configFilePath)
     if (!jibriConfigFile.exists()) {
@@ -107,9 +115,11 @@ fun main(args: Array<String>) {
     )
     launchHttpServer(3333, internalHttpApi)
 
-    // XmppApi
-    val xmppApi = XmppApi(jibriManager = jibri, xmppConfigs = jibriConfig.xmppEnvironments)
-    xmppApi.start()
+    if (noXmpp == null || !noXmpp) {
+        // XmppApi
+        val xmppApi = XmppApi(jibriManager = jibri, xmppConfigs = jibriConfig.xmppEnvironments)
+        xmppApi.start()
+    }
 
     // HttpApi
     launchHttpServer(2222, HttpApi(jibri))
