@@ -212,24 +212,34 @@ class JibriSelenium(
      * Join a a web call with Selenium
      */
     fun joinCall(callUrlInfo: CallUrlInfo, xmppCredentials: XmppCredentials? = null): Boolean {
-        HomePage(chromeDriver).visit(callUrlInfo.baseUrl)
+        if (!jibriSeleniumOptions.useDummyCallPage) {
+            HomePage(chromeDriver).visit(callUrlInfo.baseUrl)
 
-        val localStorageValues = mutableMapOf(
-            "displayname" to jibriSeleniumOptions.displayName,
-            "email" to jibriSeleniumOptions.email,
-            "callStatsUserName" to "jibri"
-        )
-        xmppCredentials?.let {
-            localStorageValues["xmpp_username_override"] = "${xmppCredentials.username}@${xmppCredentials.domain}"
-            localStorageValues["xmpp_password_override"] = xmppCredentials.password
+            val localStorageValues = mutableMapOf(
+                "displayname" to jibriSeleniumOptions.displayName,
+                "email" to jibriSeleniumOptions.email,
+                "callStatsUserName" to "jibri"
+            )
+            xmppCredentials?.let {
+                localStorageValues["xmpp_username_override"] = "${xmppCredentials.username}@${xmppCredentials.domain}"
+                localStorageValues["xmpp_password_override"] = xmppCredentials.password
+            }
+            setLocalStorageValues(localStorageValues)
+
+            if (!callPage.visit(callUrlInfo.callUrl)) {
+                return false
+            }
+
+            addEmptyCallDetector()
+            addParticipantTracker()
+            currCallUrl = callUrlInfo.callUrl
+        } else {
+            // dummy mode
+            if (!callPage.visit(callUrlInfo.baseUrl)) {
+                return false
+            }
+            currCallUrl = callUrlInfo.baseUrl
         }
-        setLocalStorageValues(localStorageValues)
-        if (!callPage.visit(callUrlInfo.callUrl)) {
-            return false
-        }
-        addEmptyCallDetector()
-        addParticipantTracker()
-        currCallUrl = callUrlInfo.callUrl
         return true
     }
 
